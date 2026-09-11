@@ -1,1 +1,1 @@
-Deploy latest TripNest updates: polished Japanese homepage copy, improved login and new-member signup flow, Stripe test webhook configuration, and account page refinements.
+Deploy final Japanese copy and authentication improvements, including localized signup/login errors and Stripe test webhook environment configuration.
