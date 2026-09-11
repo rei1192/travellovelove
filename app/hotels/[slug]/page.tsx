@@ -38,21 +38,22 @@ export default function HotelDetailPage(){
   const highRated=Number(hotel.rating)>=4.5
   const manyReviews=(hotel.review_count||0)>=1000
 
+  const amenitySample=amenities.slice(0,3).join('・')
+  const naturalIntro=hotel.description||`${hotel.name}は、${locationLabel||'旅の拠点にしやすいエリア'}でゆっくり滞在したいときに選びやすいホテルです。観光や街歩きを楽しんだあと、ホテルに戻ってほっと一息つける。そんな旅の流れをイメージしながら選べる一軒です。${highRated?`評価は★${Number(hotel.rating).toFixed(1)}で、滞在先を安心感で選びたい人にも気になる存在。`:''}${amenities.length?`${amenitySample}などの設備もそろっているので、外で過ごす時間だけでなく、ホテルでの時間も旅の楽しみにできます。`:''}`
+
   const appealCards=[
-    {icon:'★',title:'選ばれる理由',text:highRated?`評価 ${Number(hotel.rating).toFixed(1)}。宿泊先選びで重視したい評価面でも注目しやすいホテルです。`:`評価 ${Number(hotel.rating).toFixed(1)}。口コミとあわせてホテル選びの参考にできます。`},
-    {icon:'⌖',title:'立地をチェック',text:`${locationLabel||'周辺エリア'}に位置。詳細ページの地図から観光地や駅、周辺のお店との距離を確認できます。`},
-    {icon:'✦',title:'滞在の充実度',text:amenities.length?`${amenities.slice(0,3).join('・')}など、${amenities.length}項目の設備・サービス情報を掲載しています。`:'設備・サービス情報は順次更新しています。'},
+    {icon:'✦',title:'旅の拠点にちょうどいい',text:`${locationLabel||hotel.city||hotel.prefecture}を楽しむ旅なら、ホテルの場所は大切。観光や食事の予定と組み合わせながら、無理のない旅程を組みやすい立地です。`},
+    {icon:'♡',title:'ホテルで過ごす時間も楽しめる',text:amenities.length?`${amenitySample}などの設備があり、出かけるだけの旅ではなく、ホテルに戻ってからの時間までゆっくり楽しめます。`:'旅の途中でしっかり休みたいときにも選びやすいホテルです。'},
+    {icon:'★',title:'選ぶときの安心感',text:highRated?`評価は★${Number(hotel.rating).toFixed(1)}${hotel.review_count?`、口コミは${hotel.review_count.toLocaleString()}件`:''}。せっかくの旅行だから、滞在先も妥協したくない人にチェックしてほしいホテルです。`:`評価や口コミを見ながら、旅のスタイルに合うかゆっくり比較できます。`},
   ]
 
   const stayTypes=[
-    wellness&&{title:'ホテル時間を楽しみたい人',text:'スパ・プール・フィットネスなどの設備情報があり、観光だけでなくホテルで過ごす時間も組み込みやすい滞在先です。'},
-    food&&{title:'食事も楽しみたい人',text:'朝食・レストラン・ラウンジなどの設備情報があり、ホテル内での食事時間も旅の楽しみにできます。'},
-    family&&{title:'家族旅行を考えている人',text:'ファミリー滞在で使いやすい設備を確認できます。人数や旅程に合わせてチェックしてみてください。'},
-    manyReviews&&{title:'口コミ数も重視したい人',text:`口コミ ${hotel.review_count.toLocaleString()}件。多くの利用者評価を参考にしながら比較したい人にも向いています。`},
-    {title:'立地を見て選びたい人',text:`${hotel.city||hotel.prefecture}での観光や移動ルートを地図で確認しながら、旅程に合うか判断できます。`},
+    wellness&&{title:'ホテルでものんびり過ごしたい旅に',text:'観光を詰め込みすぎず、ホテルの設備を楽しみながら少し贅沢に過ごしたいときにも合います。'},
+    food&&{title:'食事の時間も大切にしたい旅に',text:'朝食やレストラン、ラウンジなどの設備があるので、ホテルで過ごす食事の時間も旅の思い出にしやすいです。'},
+    family&&{title:'家族でゆったり過ごす旅行に',text:'みんなで過ごしやすい設備を確認できるので、家族旅行の滞在先としても比較しやすいホテルです。'},
+    manyReviews&&{title:'失敗したくないホテル選びに',text:`口コミは${hotel.review_count.toLocaleString()}件。実際に泊まった人の評価も参考にしながら選びたい人には、安心材料のひとつになります。`},
+    {title:'観光もホテル時間も欲張りたい旅に',text:`${hotel.city||hotel.prefecture}を楽しみつつ、ホテルに戻ったあとは少しゆっくり。そんなバランスのいい旅に合わせやすい一軒です。`},
   ].filter(Boolean).slice(0,3) as {title:string;text:string}[]
-
-  const introText=hotel.description||`${hotel.name}は、${locationLabel||'便利なエリア'}でホテル選びをする人にチェックしてほしいTripNest掲載ホテルです。評価は★${Number(hotel.rating).toFixed(1)}${hotel.review_count?`、口コミは${hotel.review_count.toLocaleString()}件`:''}。立地・設備・料金をまとめて比較しながら、自分の旅に合う滞在先か確認できます。`
 
   return <main>
     <HotelPhoto placeId={hotel.google_place_id} name={hotel.name} className="detailHero premiumDetailHero" fallbackClass="detailHeroFallback">
@@ -68,18 +69,18 @@ export default function HotelDetailPage(){
     </section>
 
     <section className="section detailSection hotelAboutEnhanced" id="about">
-      <div className="eyebrow">WHY STAY HERE</div>
-      <h2>{hotel.name}の魅力</h2>
-      <p className="aboutLead">{introText}</p>
+      <div className="eyebrow">WHY YOU'LL LOVE IT</div>
+      <h2>ここに泊まりたくなる理由</h2>
+      <p className="aboutLead">{naturalIntro}</p>
 
       <div className="appealCardGrid">{appealCards.map(card=><div className="appealCard" key={card.title}><span className="appealIcon">{card.icon}</span><div><b>{card.title}</b><p>{card.text}</p></div></div>)}</div>
 
       <div className="stayFitBlock">
-        <div className="stayFitHeading"><div><span>STAY STYLE</span><h3>こんな滞在におすすめ</h3></div><small>TripNestチェックポイント</small></div>
+        <div className="stayFitHeading"><div><span>YOUR STAY</span><h3>こんな旅に似合うホテルです</h3></div><small>TripNestおすすめポイント</small></div>
         <div className="stayFitGrid">{stayTypes.map((item,i)=><div className="stayFitItem" key={item.title}><span>{String(i+1).padStart(2,'0')}</span><div><b>{item.title}</b><p>{item.text}</p></div></div>)}</div>
       </div>
 
-      {amenities.length>0&&<div className="aboutAmenityPreview"><span>主な設備</span><div>{amenities.slice(0,5).map(a=><b key={a}>{a}</b>)}</div></div>}
+      {amenities.length>0&&<div className="aboutAmenityPreview"><span>滞在を心地よくする設備</span><div>{amenities.slice(0,5).map(a=><b key={a}>{a}</b>)}</div></div>}
       <GooglePlaceLive placeId={hotel.google_place_id}/>
     </section>
 
