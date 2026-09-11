@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import {useEffect,useMemo,useState} from 'react'
 import {getSupabaseClient} from '@/lib/supabase'
+import HotelPhoto from '@/components/HotelPhoto'
 import type {Hotel} from '@/lib/types'
 
 export default function HotelExplorer(){
@@ -46,7 +47,7 @@ export default function HotelExplorer(){
       <div className="chips premiumChips">{prefectures.map(x=><button key={x} className={'chip '+(pref===x?'active':'')} onClick={()=>setPref(x)}>{x}</button>)}</div>
       <div className="sortRow"><span>並び順</span><select value={sort} onChange={e=>setSort(e.target.value)}><option value="recommended">おすすめ順</option><option value="coin_asc">必要コインが少ない順</option><option value="rating">評価が高い順</option></select></div>
       {loading?<div className="skeletonGrid"><div/><div/></div>:<div className="grid realHotelGrid">{list.map((h,i)=><article className="card realHotelCard" key={h.id}>
-        <div className={'hotelVisual visual'+(i%4)}><div className="hotelVisualTop"><span className="realBadge">{h.featured?'✦ プレミアム':'おすすめ'}</span>{h.featured&&<span className="featured">人気</span>}</div><div className="hotelVisualBottom"><small>{h.prefecture}・{h.city}</small><strong>{h.name}</strong></div><button aria-label="お気に入り" className={'favBtn '+(favs.includes(h.id)?'liked':'')} onClick={()=>toggle(h.id)}>{favs.includes(h.id)?'♥':'♡'}</button></div>
+        <HotelPhoto placeId={h.google_place_id} name={h.name} className="hotelVisual" fallbackClass={'visual'+(i%4)}><div className="hotelVisualTop"><span className="realBadge">{h.featured?'✦ プレミアム':'おすすめ'}</span>{h.featured&&<span className="featured">人気</span>}</div><div className="hotelVisualBottom"><small>{h.prefecture}・{h.city}</small><strong>{h.name}</strong></div><button aria-label="お気に入り" className={'favBtn '+(favs.includes(h.id)?'liked':'')} onClick={()=>toggle(h.id)}>{favs.includes(h.id)?'♥':'♡'}</button></HotelPhoto>
         <div className="cardBody upgradedCardBody"><div className="ratingLine"><span>★ {Number(h.rating).toFixed(1)}</span><small>{h.review_count?`口コミ ${h.review_count.toLocaleString()}件`:'注目のホテル'}</small></div><div className="amenityLine">{(h.amenities||[]).slice(0,3).map(a=><span key={a}>{a}</span>)}</div><div className="priceRow"><div className="price"><b>●</b> {h.coin.toLocaleString()} <small>コイン / 1泊〜</small></div><div className="cardLinks"><a href={h.google_maps_url||'#'} target="_blank" rel="noreferrer">地図</a><Link href={`/hotels/${h.slug}`} className="detailArrow">詳細 ›</Link></div></div></div>
       </article>)}</div>}
     </section>
