@@ -12,7 +12,7 @@ export type Hotel = {
   amenities: string[]
   description: string | null
   featured: boolean
-  is_active: boolean
+  is_active?: boolean
   address: string | null
 }
 
