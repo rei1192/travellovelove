@@ -1,1 +1,1 @@
-Trigger final deployment with Stripe test Payment Links, signed webhook coin crediting, coin purchase UI, Google Maps/Places integration, and latest TripNest polish.
+Deploy latest TripNest updates: polished Japanese homepage copy, improved login and new-member signup flow, Stripe test webhook configuration, and account page refinements.
