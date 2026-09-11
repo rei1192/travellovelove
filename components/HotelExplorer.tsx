@@ -1,29 +1,73 @@
 'use client'
+import Link from 'next/link'
 import {useEffect,useMemo,useState} from 'react'
 import {getSupabaseClient} from '@/lib/supabase'
+import type {Hotel} from '@/lib/types'
 
-type Hotel={id:string;name:string;area:string;coin:number;rating:number;image:string}
-const hotels:Hotel[]=[
-{id:'fukuoka-harbor',name:'Fukuoka Harbor Stay',area:'福岡市',coin:690,rating:4.7,image:'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80'},
-{id:'hakata-riverside',name:'Hakata Riverside Hotel',area:'福岡市',coin:780,rating:4.6,image:'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1200&q=80'},
-{id:'kumamoto-castle',name:'Kumamoto Castle View',area:'熊本市',coin:840,rating:4.8,image:'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=1200&q=80'},
-{id:'beppu-onsen',name:'Beppu Onsen Terrace',area:'別府市',coin:980,rating:4.9,image:'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1200&q=80'},
-{id:'sapporo-grand',name:'Sapporo Grand Stay',area:'札幌市',coin:760,rating:4.6,image:'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80'},
-{id:'okinawa-beach',name:'Okinawa Beach Resort',area:'恩納村',coin:1380,rating:4.9,image:'https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=80'}]
+const fallback: Hotel[] = [
+  {id:'demo-1',slug:'fukuoka-harbor',name:'Fukuoka Harbor Stay',area:'福岡市',prefecture:'福岡県',city:'福岡市',coin:690,rating:4.7,review_count:128,image_url:'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80',amenities:['Wi-Fi','朝食'],description:'福岡の街と海を楽しめる滞在拠点。',featured:true,address:null},
+  {id:'demo-2',slug:'sapporo-grand',name:'Sapporo Grand Stay',area:'札幌市',prefecture:'北海道',city:'札幌市',coin:760,rating:4.8,review_count:214,image_url:'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80',amenities:['Wi-Fi','大浴場'],description:'札幌観光の拠点に便利なシティホテル。',featured:true,address:null}
+]
 
 export default function HotelExplorer(){
- const[q,setQ]=useState('');const[favs,setFavs]=useState<string[]>([]);const[area,setArea]=useState('すべて')
- useEffect(()=>{setFavs(JSON.parse(localStorage.getItem('tripnest-favs')||'[]'))},[])
- const list=useMemo(()=>hotels.filter(h=>(area==='すべて'||h.area.includes(area))&&(h.name+h.area).toLowerCase().includes(q.toLowerCase())),[q,area])
- async function toggle(id:string){
-  const on=favs.includes(id);const next=on?favs.filter(x=>x!==id):[...favs,id];setFavs(next);localStorage.setItem('tripnest-favs',JSON.stringify(next))
-  const sb=getSupabaseClient();if(!sb)return;const {data:{user}}=await sb.auth.getUser();if(!user)return
-  if(on) await sb.from('favorites').delete().eq('user_id',user.id).eq('hotel_id',id)
-  else await sb.from('favorites').upsert({user_id:user.id,hotel_id:id},{onConflict:'user_id,hotel_id'})
- }
- return <>
-  <section className="hero" id="search"><div className="eyebrow">TRAVEL MEMBERSHIP</div><h1>次の旅を、もっと自由に。</h1><p>気になる宿を探して、お気に入り保存。会員登録すると端末をまたいで管理できます。</p><div className="searchBox"><input value={q} onChange={e=>setQ(e.target.value)} placeholder="エリア・ホテル名を検索"/><button>検索</button></div></section>
-  <section className="section"><div className="sectionTitle"><h2>おすすめの宿</h2><span>{list.length}件</span></div><div className="chips">{['すべて','福岡','熊本','別府','札幌','恩納'].map(x=><button key={x} className={'chip '+(area===x?'active':'')} onClick={()=>setArea(x)}>{x}</button>)}</div><div className="grid" style={{marginTop:14}}>{list.map(h=><article className="card" key={h.id}><div className="photoWrap"><img src={h.image} alt={h.name}/><span className="badge">★ {h.rating}</span><button className="favBtn" onClick={()=>toggle(h.id)}>{favs.includes(h.id)?'♥':'♡'}</button></div><div className="cardBody"><h3>{h.name}</h3><div className="meta">{h.area} ・ 高評価</div><div className="price"><b>●</b> {h.coin.toLocaleString()} coin〜 / 泊</div></div></article>)}</div></section>
-  <section className="section" id="favorites"><div className="sectionTitle"><h2>お気に入り</h2><span>{favs.length}件</span></div>{favs.length?<div className="grid">{hotels.filter(h=>favs.includes(h.id)).map(h=><article className="card" key={h.id}><div className="photoWrap"><img src={h.image} alt={h.name}/></div><div className="cardBody"><h3>{h.name}</h3><div className="meta">{h.area}</div></div></article>)}</div>:<div className="empty">♡ を押した宿がここに表示されます</div>}</section>
- </>
+  const [hotels,setHotels]=useState<Hotel[]>([])
+  const [q,setQ]=useState('')
+  const [pref,setPref]=useState('すべて')
+  const [sort,setSort]=useState('recommended')
+  const [favs,setFavs]=useState<string[]>([])
+  const [loading,setLoading]=useState(true)
+
+  useEffect(()=>{void load()},[])
+  async function load(){
+    const sb=getSupabaseClient()
+    const local=JSON.parse(localStorage.getItem('tripnest-favs')||'[]') as string[]
+    if(!sb){setHotels(fallback);setFavs(local);setLoading(false);return}
+    const [{data:hotelData},{data:{user}}]=await Promise.all([sb.from('hotels').select('*').eq('is_active',true),sb.auth.getUser()])
+    setHotels((hotelData as Hotel[]|null)||fallback)
+    if(user){
+      const {data}=await sb.from('favorites').select('hotel_id').eq('user_id',user.id)
+      const ids=(data||[]).map(x=>x.hotel_id as string)
+      setFavs(ids);localStorage.setItem('tripnest-favs',JSON.stringify(ids))
+    }else setFavs(local)
+    setLoading(false)
+  }
+
+  const prefectures=useMemo(()=>['すべて',...Array.from(new Set(hotels.map(h=>h.prefecture))).filter(Boolean)], [hotels])
+  const list=useMemo(()=>{
+    const term=q.trim().toLowerCase()
+    const rows=hotels.filter(h=>(pref==='すべて'||h.prefecture===pref)&&(!term||`${h.name} ${h.area} ${h.prefecture} ${h.city}`.toLowerCase().includes(term)))
+    return [...rows].sort((a,b)=>sort==='coin_asc'?a.coin-b.coin:sort==='rating'?Number(b.rating)-Number(a.rating):Number(b.featured)-Number(a.featured)||Number(b.rating)-Number(a.rating))
+  },[hotels,q,pref,sort])
+
+  async function toggle(id:string){
+    const on=favs.includes(id)
+    const next=on?favs.filter(x=>x!==id):[...favs,id]
+    setFavs(next);localStorage.setItem('tripnest-favs',JSON.stringify(next))
+    const sb=getSupabaseClient();if(!sb)return
+    const {data:{user}}=await sb.auth.getUser();if(!user)return
+    if(on) await sb.from('favorites').delete().eq('user_id',user.id).eq('hotel_id',id)
+    else await sb.from('favorites').upsert({user_id:user.id,hotel_id:id},{onConflict:'user_id,hotel_id'})
+  }
+
+  return <>
+    <section className="hero heroAdvanced" id="search">
+      <div className="eyebrow">TRIPNEST MEMBERSHIP</div>
+      <h1>泊まりたいを、<br/>すぐ次の旅へ。</h1>
+      <p>全国の宿をコインで探して、保存して、予約まで。会員になるとお気に入りと予約履歴をクラウド同期できます。</p>
+      <div className="searchBox"><span>⌕</span><input value={q} onChange={e=>setQ(e.target.value)} placeholder="ホテル名・都市・都道府県"/><button>検索</button></div>
+      <div className="heroStats"><div><b>{hotels.length}</b><span>掲載施設</span></div><div><b>5000</b><span>初回コイン</span></div><div><b>24h</b><span>いつでも検索</span></div></div>
+    </section>
+
+    <section className="section">
+      <div className="sectionTitle"><div><div className="eyebrow">DISCOVER</div><h2>宿を探す</h2></div><span>{loading?'読込中':`${list.length}件`}</span></div>
+      <div className="chips">{prefectures.map(x=><button key={x} className={'chip '+(pref===x?'active':'')} onClick={()=>setPref(x)}>{x}</button>)}</div>
+      <div className="sortRow"><span>おすすめの宿</span><select value={sort} onChange={e=>setSort(e.target.value)}><option value="recommended">おすすめ順</option><option value="coin_asc">コインが少ない順</option><option value="rating">評価順</option></select></div>
+      {loading?<div className="skeletonGrid"><div/><div/></div>:<div className="grid">{list.map(h=><article className="card hotelCard" key={h.id}>
+        <div className="photoWrap"><Link href={`/hotels/${h.slug}`}><img src={h.image_url||fallback[0].image_url!} alt={h.name}/></Link><span className="badge">★ {Number(h.rating).toFixed(1)} <small>({h.review_count})</small></span>{h.featured&&<span className="featured">人気</span>}<button aria-label="お気に入り" className={'favBtn '+(favs.includes(h.id)?'liked':'')} onClick={()=>toggle(h.id)}>{favs.includes(h.id)?'♥':'♡'}</button></div>
+        <div className="cardBody"><div className="meta">{h.prefecture}・{h.city}</div><Link href={`/hotels/${h.slug}`} className="hotelTitle">{h.name}</Link><div className="amenityLine">{(h.amenities||[]).slice(0,3).map(a=><span key={a}>{a}</span>)}</div><div className="priceRow"><div className="price"><b>●</b> {h.coin.toLocaleString()} <small>coin / 泊〜</small></div><Link className="detailArrow" href={`/hotels/${h.slug}`}>›</Link></div></div>
+      </article>)}</div>}
+    </section>
+
+    <section className="section softSection" id="favorites"><div className="sectionTitle"><div><div className="eyebrow">SAVED</div><h2>お気に入り</h2></div><span>{favs.length}件</span></div>{favs.length?<div className="miniGrid">{hotels.filter(h=>favs.includes(h.id)).map(h=><Link className="miniCard" href={`/hotels/${h.slug}`} key={h.id}><img src={h.image_url||fallback[0].image_url!} alt=""/><div><b>{h.name}</b><span>{h.area}・{h.coin.toLocaleString()} coin〜</span></div></Link>)}</div>:<div className="empty"><b>まだ保存した宿はありません</b><span>♡ をタップすると、ここにまとめて表示されます。</span></div>}</section>
+  </>
 }
