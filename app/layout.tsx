@@ -1,5 +1,6 @@
 import './globals.css'
 import './advanced.css'
+import './polish.css'
 import Link from 'next/link'
 import AppNavigation from '@/components/AppNavigation'
 
