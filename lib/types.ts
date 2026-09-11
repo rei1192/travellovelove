@@ -14,6 +14,10 @@ export type Hotel = {
   featured: boolean
   is_active?: boolean
   address: string | null
+  google_place_id?: string | null
+  google_maps_url?: string | null
+  phone?: string | null
+  verified_real?: boolean
 }
 
 export type Reservation = {
