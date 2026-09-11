@@ -30,11 +30,29 @@ export default function HotelDetailPage(){
     {label:'1泊',value:`${hotel.coin.toLocaleString()} coin〜`},
     {label:'エリア',value:hotel.area||hotel.city||hotel.prefecture},
   ]
-  const highlights=[
-    hotel.featured?'TripNest注目ホテル':'TripNest掲載ホテル',
-    amenities.length?`${amenities.length}種類の設備・サービス`:'設備情報を順次更新中',
-    hotel.google_maps_url||hotel.address?'地図で立地を確認できます':'エリア情報を確認できます',
+
+  const hasAmenity=(word:string)=>amenities.some(a=>a.toLowerCase().includes(word.toLowerCase()))
+  const wellness=hasAmenity('スパ')||hasAmenity('温泉')||hasAmenity('大浴場')||hasAmenity('プール')||hasAmenity('フィットネス')
+  const food=hasAmenity('朝食')||hasAmenity('レストラン')||hasAmenity('ラウンジ')||hasAmenity('バー')
+  const family=hasAmenity('プール')||hasAmenity('ファミリー')||hasAmenity('ベビ')||hasAmenity('キッズ')
+  const highRated=Number(hotel.rating)>=4.5
+  const manyReviews=(hotel.review_count||0)>=1000
+
+  const appealCards=[
+    {icon:'★',title:'選ばれる理由',text:highRated?`評価 ${Number(hotel.rating).toFixed(1)}。宿泊先選びで重視したい評価面でも注目しやすいホテルです。`:`評価 ${Number(hotel.rating).toFixed(1)}。口コミとあわせてホテル選びの参考にできます。`},
+    {icon:'⌖',title:'立地をチェック',text:`${locationLabel||'周辺エリア'}に位置。詳細ページの地図から観光地や駅、周辺のお店との距離を確認できます。`},
+    {icon:'✦',title:'滞在の充実度',text:amenities.length?`${amenities.slice(0,3).join('・')}など、${amenities.length}項目の設備・サービス情報を掲載しています。`:'設備・サービス情報は順次更新しています。'},
   ]
+
+  const stayTypes=[
+    wellness&&{title:'ホテル時間を楽しみたい人',text:'スパ・プール・フィットネスなどの設備情報があり、観光だけでなくホテルで過ごす時間も組み込みやすい滞在先です。'},
+    food&&{title:'食事も楽しみたい人',text:'朝食・レストラン・ラウンジなどの設備情報があり、ホテル内での食事時間も旅の楽しみにできます。'},
+    family&&{title:'家族旅行を考えている人',text:'ファミリー滞在で使いやすい設備を確認できます。人数や旅程に合わせてチェックしてみてください。'},
+    manyReviews&&{title:'口コミ数も重視したい人',text:`口コミ ${hotel.review_count.toLocaleString()}件。多くの利用者評価を参考にしながら比較したい人にも向いています。`},
+    {title:'立地を見て選びたい人',text:`${hotel.city||hotel.prefecture}での観光や移動ルートを地図で確認しながら、旅程に合うか判断できます。`},
+  ].filter(Boolean).slice(0,3) as {title:string;text:string}[]
+
+  const introText=hotel.description||`${hotel.name}は、${locationLabel||'便利なエリア'}でホテル選びをする人にチェックしてほしいTripNest掲載ホテルです。評価は★${Number(hotel.rating).toFixed(1)}${hotel.review_count?`、口コミは${hotel.review_count.toLocaleString()}件`:''}。立地・設備・料金をまとめて比較しながら、自分の旅に合う滞在先か確認できます。`
 
   return <main>
     <HotelPhoto placeId={hotel.google_place_id} name={hotel.name} className="detailHero premiumDetailHero" fallbackClass="detailHeroFallback">
@@ -49,10 +67,19 @@ export default function HotelDetailPage(){
       <div className="detailQuickLinks"><a href="#about">ホテル概要</a><a href="#facilities">設備</a><a href="#location">アクセス</a><a href="#booking">予約</a></div>
     </section>
 
-    <section className="section detailSection" id="about">
-      <div className="eyebrow">ABOUT</div><h2>このホテルについて</h2>
-      <p className="description">{hotel.description||`${hotel.name}は、${locationLabel||'便利なエリア'}にあるTripNest掲載ホテルです。評価・設備・立地を確認しながら、旅のスタイルに合うかチェックできます。`}</p>
-      <div className="hotelHighlightList">{highlights.map(x=><div key={x}><span>✓</span><p>{x}</p></div>)}</div>
+    <section className="section detailSection hotelAboutEnhanced" id="about">
+      <div className="eyebrow">WHY STAY HERE</div>
+      <h2>{hotel.name}の魅力</h2>
+      <p className="aboutLead">{introText}</p>
+
+      <div className="appealCardGrid">{appealCards.map(card=><div className="appealCard" key={card.title}><span className="appealIcon">{card.icon}</span><div><b>{card.title}</b><p>{card.text}</p></div></div>)}</div>
+
+      <div className="stayFitBlock">
+        <div className="stayFitHeading"><div><span>STAY STYLE</span><h3>こんな滞在におすすめ</h3></div><small>TripNestチェックポイント</small></div>
+        <div className="stayFitGrid">{stayTypes.map((item,i)=><div className="stayFitItem" key={item.title}><span>{String(i+1).padStart(2,'0')}</span><div><b>{item.title}</b><p>{item.text}</p></div></div>)}</div>
+      </div>
+
+      {amenities.length>0&&<div className="aboutAmenityPreview"><span>主な設備</span><div>{amenities.slice(0,5).map(a=><b key={a}>{a}</b>)}</div></div>}
       <GooglePlaceLive placeId={hotel.google_place_id}/>
     </section>
 
