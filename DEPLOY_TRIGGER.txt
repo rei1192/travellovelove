@@ -1,1 +1,1 @@
-Trigger Netlify deployment after premium UI, Google Maps, saved/reservations redesign, and verified real hotel data update.
+Trigger final Netlify deployment after active navigation, member dashboard, polished saved/trips/map/detail UX, and verified real hotel data.
