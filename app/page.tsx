@@ -1,6 +1,11 @@
 import Link from 'next/link'
 import HotelExplorer from '@/components/HotelExplorer'
+import HomeMemberPanel from '@/components/HomeMemberPanel'
 
 export default function Home(){
-  return <main><HotelExplorer/><section className="promo"><div className="eyebrow" style={{color:'#8de6f7'}}>TRIPNEST MEMBER</div><h2>旅を、会員体験に。</h2><p>新規登録で5,000コイン。ホテル検索、お気に入り同期、コイン予約、予約履歴までひとつのアカウントで管理できます。</p><Link href="/account" className="primaryLink" style={{background:'#fff',color:'#111',marginTop:16}}>無料で始める</Link></section></main>
+  return <main>
+    <HotelExplorer/>
+    <HomeMemberPanel/>
+    <section className="promo premiumPromo"><div className="eyebrow" style={{color:'#8de6f7'}}>TRIPNEST MEMBER</div><h2>探す、保存する、予約する。<br/>旅をひとつの流れに。</h2><p>実在ホテルを中心に、Googleマップで場所を確認しながら候補を保存。会員ならコイン予約と旅程管理までまとめて使えます。</p><div className="promoActions"><Link href="/account" className="primaryLink">無料で始める</Link><Link href="/map" className="secondaryLink">地図から探す</Link></div></section>
+  </main>
 }
