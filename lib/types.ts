@@ -14,6 +14,8 @@ export type Hotel = {
   featured: boolean
   is_active?: boolean
   address: string | null
+  latitude?: number | null
+  longitude?: number | null
   google_place_id?: string | null
   google_maps_url?: string | null
   phone?: string | null
@@ -31,7 +33,7 @@ export type Reservation = {
   status: string
   confirmation_code: string | null
   created_at: string
-  hotels?: Pick<Hotel,'name'|'slug'|'image_url'|'area'> | null
+  hotels?: Pick<Hotel,'name'|'slug'|'image_url'|'area'|'city'|'address'|'google_maps_url'|'google_place_id'> | null
 }
 
 export type Profile = {
