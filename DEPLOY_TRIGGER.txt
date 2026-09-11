@@ -1,1 +1,1 @@
-Trigger final Netlify deployment after active navigation, member dashboard, polished saved/trips/map/detail UX, and verified real hotel data.
+Trigger final deployment with Stripe test Payment Links, signed webhook coin crediting, coin purchase UI, Google Maps/Places integration, and latest TripNest polish.
